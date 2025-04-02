@@ -2,8 +2,8 @@ struct stat;
 
 // system calls
 int fork(void);
-int exit(int) __attribute__((noreturn));
-int wait(int*);
+int exit(int, char*) __attribute__((noreturn));
+int wait(int*, char*);
 int pipe(int*);
 int write(int, const void*, int);
 int read(int, void*, int);
@@ -22,6 +22,7 @@ int getpid(void);
 char* sbrk(int);
 int sleep(int);
 int uptime(void);
+int memsize(void);
 
 // ulib.c
 int stat(const char*, struct stat*);
@@ -37,6 +38,8 @@ void* memset(void*, int, uint);
 int atoi(const char*);
 int memcmp(const void *, const void *, uint);
 void *memcpy(void *, const void *, uint);
+int forkn(int, int*);
+
 
 // umalloc.c
 void* malloc(uint);

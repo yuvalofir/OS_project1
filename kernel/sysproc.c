@@ -9,9 +9,11 @@
 uint64
 sys_exit(void)
 {
+  char exitMsg[32];
   int n;
   argint(0, &n);
-  exit(n);
+  argstr(1, exitMsg, sizeof(exitMsg));
+  exit(n, exitMsg);
   return 0;  // not reached
 }
 
@@ -26,13 +28,51 @@ sys_fork(void)
 {
   return fork();
 }
+uint64
+sys_forkn(void)
+{
+  int n;
+  uint64 pids_ptr;
+  argint(0, &n);
+  argaddr(1, &pids_ptr);
+  // if the number of the child processes is not in the range [1, 16]
+  if (n < 1 || n > 16)
+    return -1;
+
+  struct proc *p = myproc();
+  int pids[n];
+  int created = 0;
+
+  for (int i = 0; i < n; i++) {
+    int pid = fork();
+    if (pid < 0) {
+      // failure in creating a child process and cleaning them up
+      for (int j = 0; j < i; j++)
+        kill(pids[j]);
+      return -1;
+    }
+    if (pid == 0)  // תהליך בן
+      return i + 1;
+
+    pids[i] = pid;
+    created++;
+  }
+
+  // רק ההורה מגיע לפה – מעתיקים את הפידים למשתמש
+  if (copyout(p->pagetable, pids_ptr, (char*)pids, sizeof(int) * n) < 0)
+    return -1;
+
+  return 0; // הורה מחזיר 0
+}
 
 uint64
 sys_wait(void)
 {
   uint64 p;
+  uint64 msg_addr;
   argaddr(0, &p);
-  return wait(p);
+  argaddr(1, &msg_addr);
+  return wait(p, msg_addr);
 }
 
 uint64
@@ -90,4 +130,8 @@ sys_uptime(void)
   xticks = ticks;
   release(&tickslock);
   return xticks;
+}
+
+uint64 sys_memsize(void) { 
+  return myproc()->sz;
 }

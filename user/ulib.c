@@ -11,7 +11,7 @@ start()
 {
   extern int main();
   main();
-  exit(0);
+  exit(0, "main returned");
 }
 
 char*
