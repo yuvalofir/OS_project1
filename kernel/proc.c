@@ -324,6 +324,50 @@ fork(void)
 
   return pid;
 }
+int
+forkn(int n, int *pids)
+{
+  struct proc *p = myproc();
+  struct proc *np;
+  int i, pid;
+  int child_pids[16];  // at most 16 children
+  
+  if (n < 1 || n > 16)
+    return -1;
+  
+  for (i = 0; i < n; i++) {
+    if ((np = allocproc()) == 0) {
+      // if we fail to allocate a process, we need to clean up
+      for (int j = 0; j < i; j++) {
+        struct proc *cp = findproc(child_pids[j]);
+        acquire(&cp->lock);
+        cp->killed = 1;
+        cp->state = UNUSED;
+        release(&cp->lock);
+      }
+      return -1;
+    }
+
+  // Copy user memory from parent to child.
+  if(uvmcopy(p->pagetable, np->pagetable, p->sz) < 0){
+    freeproc(np);
+    release(&np->lock);
+    return -1;
+  }
+    np->sz = p->sz;
+
+    *(np->trapframe) = *(p->trapframe);
+// the child process returns its index
+    np->trapframe->a0 = i + 1; 
+    child_pids[i] = np->pid;
+    np->state = RUNNABLE;
+    release(&np->lock);
+  }
+
+  // copy the PIDs to the user space array
+  copyout(p->pagetable, (uint64)pids, (char *)child_pids, n * sizeof(int));
+  return 0;
+}
 
 // Pass p's abandoned children to init.
 // Caller must hold wait_lock.

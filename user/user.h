@@ -39,6 +39,7 @@ int atoi(const char*);
 int memcmp(const void *, const void *, uint);
 void *memcpy(void *, const void *, uint);
 int forkn(int, int*);
+int waitall(int*, int*);
 
 
 // umalloc.c
