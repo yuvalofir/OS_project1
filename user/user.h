@@ -23,6 +23,8 @@ char* sbrk(int);
 int sleep(int);
 int uptime(void);
 int memsize(void);
+int forkn(int, int*);
+int waitall(int*, int*);
 
 // ulib.c
 int stat(const char*, struct stat*);
@@ -38,8 +40,6 @@ void* memset(void*, int, uint);
 int atoi(const char*);
 int memcmp(const void *, const void *, uint);
 void *memcpy(void *, const void *, uint);
-int forkn(int, int*);
-int waitall(int*, int*);
 
 
 // umalloc.c
